@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa Mental: Estadística Aplicada a la Educación</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1500px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding: 20px;
+            background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
+            border-radius: 15px;
+            color: white;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .radial-map {
+            position: relative;
+            width: 100%;
+            height: 800px;
+            margin: 0 auto;
+        }
+        
+        .center-node {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            border-radius: 50%;
+            width: 150px;
+            height: 150px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: all 0.4s ease;
+            z-index: 100;
+            padding: 15px;
+        }
+        
+        .center-node:hover {
+            transform: translate(-50%, -50%) scale(1.08);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+        }
+        
+        .branch {
+            position: absolute;
+            width: 320px; /* Recuadros más anchos */
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+            cursor: pointer;
+            transition: all 0.4s ease;
+            z-index: 10;
+        }
+        
+        .branch:hover {
+            transform: translateY(-7px) scale(1.05);
+            box-shadow: 0 15px 25px rgba(0,0,0,0.2);
+        }
+        
+        .branch-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            font-size: 1.2rem;
+            border-bottom: 3px solid;
+            padding-bottom: 10px;
+        }
+        
+        .branch-icon {
+            margin-right: 12px;
+            font-size: 1.5rem;
+        }
+        
+        .branch-content {
+            font-size: 1rem;
+            color: #34495e;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.6s ease;
+        }
+        
+        .branch-content ul {
+            list-style-type: none;
+            padding: 15px 0 0 0;
+        }
+        
+        .branch-content li {
+            margin-bottom: 10px;
+            position: relative;
+            padding-left: 25px;
+            line-height: 1.5;
+        }
+        
+        .branch-content li:before {
+            content: "•";
+            color: #e74c3c;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+            font-size: 1.5rem;
+            top: -3px;
+        }
+        
+        .branch.active {
+            width: 380px; /* Recuadros aún más anchos cuando están activos */
+            z-index: 20;
+        }
+        
+        .branch.active .branch-content {
+            max-height: 600px;
+        }
+        
+        /* Posicionamiento radial de las ramas - Más alejadas del centro */
+        .branch.division {
+            top: 3%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #1abc9c 0%, #16a085 100%);
+        }
+        .branch.division .branch-title {
+            border-color: #16a085;
+        }
+        
+        .branch.conceptos {
+            top: 18%;
+            right: 3%;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        }
+        .branch.conceptos .branch-title {
+            border-color: #2980b9;
+        }
+        
+        .branch.variables {
+            bottom: 18%;
+            right: 3%;
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+        }
+        .branch.variables .branch-title {
+            border-color: #8e44ad;
+        }
+        
+        .branch.escalas {
+            bottom: 3%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+        }
+        .branch.escalas .branch-title {
+            border-color: #d35400;
+        }
+        
+        .branch.organizacion {
+            bottom: 18%;
+            left: 3%;
+            background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%);
+        }
+        .branch.organizacion .branch-title {
+            border-color: #f39c12;
+        }
+        
+        .branch.aplicaciones {
+            top: 18%;
+            left: 3%;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+        .branch.aplicaciones .branch-title {
+            border-color: #c0392b;
+        }
+        
+        .connectors {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            pointer-events: none;
+        }
+        
+        .connector {
+            position: absolute;
+            background: rgba(52, 152, 219, 0.4);
+            height: 3px;
+            transform-origin: 0 0;
+            z-index: 5;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 40px;
+        }
+        
+        .btn {
+            padding: 14px 30px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            font-size: 1rem;
+        }
+        
+        .btn:hover {
+            background: #2980b9;
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        @media (max-width: 1200px) {
+            .radial-map {
+                height: auto;
+                min-height: 1000px;
+            }
+            
+            .branch {
+                position: relative;
+                margin: 20px auto;
+                left: 0 !important;
+                top: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
+                transform: none !important;
+                width: 90%;
+                max-width: 500px;
+            }
+            
+            .center-node {
+                position: relative;
+                top: 0;
+                left: 0;
+                transform: none;
+                margin: 0 auto 40px auto;
+                width: 150px;
+                height: 150px;
+            }
+            
+            .center-node:hover {
+                transform: scale(1.08);
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .branch.active {
+                width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Estadística Aplicada a la Educación</h1>
+        </header>
+        
+        <div class="radial-map">
+            <div class="center-node" onclick="toggleAll()">
+                📊<br>Estadística<br>Aplicada
+            </div>
+            
+            <div class="connectors" id="connectors"></div>
+            
+            <div class="branch division" onclick="toggleBranch(this)">
+                <div class="branch-title"><span class="branch-icon"><i class="fas fa-chart-pie"></i></span> División</div>
+                <div class="branch-content">
+                    <ul>
+                        <li><strong>Estadística Descriptiva</strong>: Organiza y describe datos mediante tablas, gráficos y medidas resumen</li>
+                        <li><strong>Estadística Inferencial</strong>: Permite hacer generalizaciones sobre una población a partir de una muestra</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="branch conceptos" onclick="toggleBranch(this)">
+                <div class="branch-title"><span class="branch-icon"><i class="fas fa-users"></i></span> Conceptos Básicos</div>
+                <div class="branch-content">
+                    <ul>
+                        <li><strong>Población</strong>: Conjunto completo de elementos objeto de estudio</li>
+                        <li><strong>Muestra</strong>: Subconjunto representativo de la población</li>
+                        <li><strong>Individuos</strong>: Elementos que componen la población</li>
+                        <li><strong>Caracteres</strong>: Propiedades o características de los individuos
+                            <ul>
+                                <li><strong>Cualitativos</strong>: Sexo, color, religión</li>
+                                <li><strong>Cuantitativos</strong>:
+                                    <ul>
+                                        <li>Discretos: Número de hijos, clientes</li>
+                                        <li>Continuos: Peso, estatura</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="branch variables" onclick="toggleBranch(this)">
+                <div class="branch-title"><span class="branch-icon"><i class="fas fa-chart-bar"></i></span> Variables</div>
+                <div class="branch-content">
+                    <ul>
+                        <li><strong>Cualitativas</strong>: Expresan atributos o características no numéricas</li>
+                        <li><strong>Cuantitativas</strong>: Expresadas en valores numéricos
+                            <ul>
+                                <li><strong>Discretas</strong>: Se determinan mediante conteos</li>
+                                <li><strong>Continuas</strong>: Se determinan mediante mediciones</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="branch escalas" onclick="toggleBranch(this)">
+                <div class="branch-title"><span class="branch-icon"><i class="fas fa-ruler"></i></span> Escalas de Medición</div>
+                <div class="branch-content">
+                    <ul>
+                        <li><strong>Nominal</strong>: Clasifica sin orden inherente (ej. colores, géneros)</li>
+                        <li><strong>Ordinal</strong>: Clasifica con orden pero sin distancia definida (ej. nivel educativo)</li>
+                        <li><strong>Intervalo</strong>: Orden con distancia igual entre valores, sin cero absoluto (ej. temperatura en Celsius)</li>
+                        <li><strong>Razón</strong>: Orden con distancia igual y cero absoluto (ej. peso, altura)</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="branch organizacion" onclick="toggleBranch(this)">
+                <div class="branch-title"><span class="branch-icon"><i class="fas fa-table"></i></span> Organización de Datos</div>
+                <div class="branch-content">
+                    <ul>
+                        <li><strong>Datos no agrupados</strong>: Datos sin procesar, punto de inicio del análisis</li>
+                        <li><strong>Datos agrupados</strong>: Datos ordenados y clasificados en intervalos
+                            <ul>
+                                <li>Con intervalos: Para variables continuas</li>
+                                <li>Sin intervalos: Para variables discretas</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="branch aplicaciones" onclick="toggleBranch(this)">
+                <div class="branch-title"><span class="branch-icon"><i class="fas fa-graduation-cap"></i></span> Aplicaciones en Educación</div>
+                <div class="branch-content">
+                    <ul>
+                        <li>Análisis de datos e interpretación de los mismos</li>
+                        <li>Organización y agrupación de datos numéricos</li>
+                        <li>Aplicación de técnicas estadísticas en investigación educativa</li>
+                        <li>Técnicas de conteo y modelos estadísticos</li>
+                        <li>Análisis de la realidad educativa</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn" onclick="toggleAll()"><i class="fas fa-expand-arrows-alt"></i> Expandir/Contraer Todo</button>
+            <button class="btn" onclick="resetMap()"><i class="fas fa-sync-alt"></i> Reiniciar Mapa</button>
+        </div>
+    </div>
+
+    <script>
+        function toggleBranch(branch) {
+            // Cerrar todas las demás ramas
+            document.querySelectorAll('.branch').forEach(item => {
+                if (item !== branch && item.classList.contains('active')) {
+                    item.classList.remove('active');
+                }
+            });
+            
+            // Alternar la rama clickeada
+            branch.classList.toggle('active');
+        }
+        
+        function toggleAll() {
+            const branches = document.querySelectorAll('.branch');
+            const allActive = Array.from(branches).every(branch => branch.classList.contains('active'));
+            
+            branches.forEach(branch => {
+                if (allActive) {
+                    branch.classList.remove('active');
+                } else {
+                    branch.classList.add('active');
+                }
+            });
+        }
+        
+        function resetMap() {
+            document.querySelectorAll('.branch').forEach(branch => {
+                branch.classList.remove('active');
+            });
+        }
+        
+        // Función para dibujar conectores (se ejecuta al cargar la página)
+        function drawConnectors() {
+            const connectorsContainer = document.getElementById('connectors');
+            connectorsContainer.innerHTML = '';
+            
+            const center = {
+                x: document.querySelector('.radial-map').offsetWidth / 2,
+                y: document.querySelector('.radial-map').offsetHeight / 2
+            };
+            
+            document.querySelectorAll('.branch').forEach(branch => {
+                const rect = branch.getBoundingClientRect();
+                const containerRect = document.querySelector('.radial-map').getBoundingClientRect();
+                
+                const branchCenter = {
+                    x: rect.left - containerRect.left + rect.width / 2,
+                    y: rect.top - containerRect.top + rect.height / 2
+                };
+                
+                const length = Math.sqrt(Math.pow(branchCenter.x - center.x, 2) + Math.pow(branchCenter.y - center.y, 2));
+                const angle = Math.atan2(branchCenter.y - center.y, branchCenter.x - center.x) * 180 / Math.PI;
+                
+                const connector = document.createElement('div');
+                connector.className = 'connector';
+                connector.style.width = `${length}px`;
+                connector.style.left = `${center.x}px`;
+                connector.style.top = `${center.y}px`;
+                connector.style.transform = `rotate(${angle}deg)`;
+                
+                connectorsContainer.appendChild(connector);
+            });
+        }
+        
+        // Dibujar conectores cuando la página se carga y cuando cambia el tamaño de la ventana
+        window.addEventListener('load', drawConnectors);
+        window.addEventListener('resize', drawConnectors);
+    </script>
+</body>
+</html>
